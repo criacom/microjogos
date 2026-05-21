@@ -95,6 +95,7 @@
       from { transform: translateX(0); }
       to   { transform: translateX(-50%); }
     }
+    /* marquee speed controlled here — aumentar o valor para mais lento */
 
     main {
       animation: bootIn 0.9s ease-out, flicker 9s infinite 1s;
@@ -133,7 +134,7 @@
     .marquee-inner {
       display: flex;
       white-space: nowrap;
-      animation: marquee 42s linear infinite;
+      animation: marquee 90s linear infinite;
       font-family: 'Press Start 2P', monospace;
       font-size: 12px;
       color: var(--pink);
@@ -272,10 +273,17 @@
     }
 
     .about-image { text-align: center; position: relative; }
+    .about-image .img-frame {
+      display: inline-block;
+      background: #fff;
+      padding: 18px;
+      border: 2px solid var(--phosphor-dim);
+      box-shadow: 0 0 20px rgba(0, 255, 102, 0.12);
+    }
     .about-image img {
       max-width: 100%;
       height: auto;
-      filter: drop-shadow(0 0 14px rgba(0, 255, 102, 0.35));
+      display: block;
       image-rendering: pixelated;
       image-rendering: crisp-edges;
     }
@@ -517,6 +525,48 @@
       text-shadow: 0 0 6px var(--red);
     }
 
+    /* ===== EM BREVE cards ===== */
+    .game-card.em-breve {
+      cursor: default;
+      opacity: 0.72;
+    }
+    .game-card.em-breve:hover,
+    .game-card.em-breve:focus-visible {
+      transform: none;
+      border-color: var(--phosphor-dim);
+      box-shadow: none;
+    }
+    .game-card.em-breve .thumb img { transition: none; }
+    .game-card.em-breve:hover .thumb img { transform: none; }
+    .em-breve-badge {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.58);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 11px;
+      color: var(--amber);
+      letter-spacing: 3px;
+      text-shadow: 0 0 8px var(--amber), 0 0 16px rgba(255,176,0,0.5);
+    }
+    .em-breve-badge span { animation: blink 1.4s steps(2, start) infinite; }
+
+    /* ===== LOGO CRIACOM no footer ===== */
+    .logo-footer {
+      display: inline-block;
+      background: #fff;
+      padding: 16px 24px;
+      border-radius: 4px;
+      margin-bottom: 16px;
+    }
+    .logo-footer img {
+      display: block;
+      max-width: 180px;
+      height: auto;
+    }
+
     /* ===== CRT LOGO ===== */
     .logo-crt {
       position: relative;
@@ -638,7 +688,7 @@
   <h3 class="section-header">SOBRE A COLEÇÃO</h3>
   <section class="about">
     <div class="about-text">
-      <p>Os <strong>Micro-jogos CRIACOM</strong> são pequenas experiências interativas — cinco minutos ou menos cada — que demonstram princípios da <strong>Análise do Comportamento</strong> sem precisar de aula nenhuma. Cada volume isola <em>um</em> conceito comportamental e o transforma em mecânica jogável.</p>
+      <p>Os <strong>Micro-jogos CRIACOM</strong> são pequenas experiências interativas — cinco minutos ou menos cada — que demonstram princípios da <strong>Análise do Comportamento</strong>. Cada volume isola <em>um</em> conceito comportamental e o transforma em mecânica jogável.</p>
       <p>Extinção, discriminação espacial, indução, insight, desconto temporal, esquemas de reforçamento... cada cartucho é uma microintuição sobre os processos que governam o que você faz — agora mesmo, lendo isto.</p>
       <p>Essa interface entre game design e análise do comportamento é o que chamamos de <span class="term">Behavioral Game Design</span>: usar a linguagem dos jogos para tornar visíveis as variáveis que regem o comportamento.</p>
       <p class="cta">
@@ -647,18 +697,20 @@
       </p>
     </div>
     <div class="about-image">
-      <img src="img/boatacon2.png" alt="Pesquisador do CRIACOM jogando em um console retrô, com um gato pensativo sobre a TV imaginando uma contingência S+ · Sd · R">
-      <p class="caption">▣ ORIENTADOR EM CAMPO · S⁺ · S<sup>d</sup> · R ▣</p>
+      <div class="img-frame">
+        <img src="img/boatacon2.png" alt="Pesquisador do CRIACOM jogando em um console retrô com um gato sobre a TV">
+      </div>
+      <p class="caption">▣ ORIENTADOR EM CAMPO ▣</p>
     </div>
   </section>
 
   <!-- ============== GAMES GRID ============== -->
+  <!-- Links ativos: Vol.1, Vol.2, Vol.5 — demais: EM BREVE -->
   <h3 class="section-header">SELECIONE SEU CARTUCHO</h3>
   <section class="games-grid">
 
-    <!-- Para conectar cada jogo, ajuste o href para o URL do micro-jogo. -->
-
-    <a href="jogos/extincao/" class="game-card" data-vol="1">
+    <!-- VOL.01 — JOGÁVEL -->
+    <a href="https://criacom.github.io/extincao/" class="game-card" target="_blank" rel="noopener" data-vol="1">
       <div class="thumb">
         <img src="img/microjogos-vol1-extincao.png" alt="Capa do Volume 1 — O Botão da Extinção">
         <div class="play-overlay">PLAY</div>
@@ -668,7 +720,8 @@
       <p class="concept">› extinção operante</p>
     </a>
 
-    <a href="jogos/discriminacao/" class="game-card" data-vol="2">
+    <!-- VOL.02 — JOGÁVEL -->
+    <a href="https://criacom.github.io/discriminacao/" class="game-card" target="_blank" rel="noopener" data-vol="2">
       <div class="thumb">
         <img src="img/microjogos-vol2-discriminacao.png" alt="Capa do Volume 2 — Discriminação Espacial">
         <div class="play-overlay">PLAY</div>
@@ -678,27 +731,30 @@
       <p class="concept">› controle de estímulos</p>
     </a>
 
-    <a href="jogos/inducao/" class="game-card" data-vol="3">
+    <!-- VOL.03 — EM BREVE -->
+    <div class="game-card em-breve" data-vol="3">
       <div class="thumb">
         <img src="img/microjogos-vol3-inducao.png" alt="Capa do Volume 3 — Indução">
-        <div class="play-overlay">PLAY</div>
+        <div class="em-breve-badge"><span>EM BREVE</span></div>
       </div>
-      <div class="meta"><span class="vol">VOL.03</span><span class="status">▣ JOGÁVEL</span></div>
+      <div class="meta"><span class="vol">VOL.03</span><span class="status">▣ EM BREVE</span></div>
       <p class="title">Indução</p>
       <p class="concept">› generalização de respostas</p>
-    </a>
+    </div>
 
-    <a href="jogos/insight/" class="game-card" data-vol="4">
+    <!-- VOL.04 — EM BREVE -->
+    <div class="game-card em-breve" data-vol="4">
       <div class="thumb">
         <img src="img/microjogos-vol4-insight.png" alt="Capa do Volume 4 — Insight">
-        <div class="play-overlay">PLAY</div>
+        <div class="em-breve-badge"><span>EM BREVE</span></div>
       </div>
-      <div class="meta"><span class="vol">VOL.04</span><span class="status">▣ JOGÁVEL</span></div>
+      <div class="meta"><span class="vol">VOL.04</span><span class="status">▣ EM BREVE</span></div>
       <p class="title">Insight</p>
       <p class="concept">› resolução de problemas</p>
-    </a>
+    </div>
 
-    <a href="jogos/insight2/" class="game-card" data-vol="5">
+    <!-- VOL.05 — JOGÁVEL -->
+    <a href="https://criacom.github.io/insight2/" class="game-card" target="_blank" rel="noopener" data-vol="5">
       <div class="thumb">
         <img src="img/microjogos-vol5-insight2.png" alt="Capa do Volume 5 — Insight 2">
         <div class="play-overlay">PLAY</div>
@@ -708,56 +764,62 @@
       <p class="concept">› a segunda olhada</p>
     </a>
 
-    <a href="jogos/desconto/" class="game-card" data-vol="6">
+    <!-- VOL.06 — EM BREVE -->
+    <div class="game-card em-breve" data-vol="6">
       <div class="thumb">
         <img src="img/microjogos-vol6-desconto.png" alt="Capa do Volume 6 — Desconto Temporal">
-        <div class="play-overlay">PLAY</div>
+        <div class="em-breve-badge"><span>EM BREVE</span></div>
       </div>
-      <div class="meta"><span class="vol">VOL.06</span><span class="status">▣ JOGÁVEL</span></div>
+      <div class="meta"><span class="vol">VOL.06</span><span class="status">▣ EM BREVE</span></div>
       <p class="title">Desconto Temporal</p>
       <p class="concept">› impulsividade e autocontrole</p>
-    </a>
+    </div>
 
-    <a href="jogos/esquemas/" class="game-card" data-vol="7">
+    <!-- VOL.07 — EM BREVE -->
+    <div class="game-card em-breve" data-vol="7">
       <div class="thumb">
         <img src="img/microjogos-vol7-esquemas.png" alt="Capa do Volume 7 — Jogo dos Esquemas">
-        <div class="play-overlay">PLAY</div>
+        <div class="em-breve-badge"><span>EM BREVE</span></div>
       </div>
-      <div class="meta"><span class="vol">VOL.07</span><span class="status">▣ JOGÁVEL</span></div>
+      <div class="meta"><span class="vol">VOL.07</span><span class="status">▣ EM BREVE</span></div>
       <p class="title">Jogo dos Esquemas</p>
       <p class="concept">› FR · VR · FI · VI</p>
-    </a>
+    </div>
 
-    <a href="jogos/behaviorismos/" class="game-card" data-vol="8">
+    <!-- VOL.08 — EM BREVE -->
+    <div class="game-card em-breve" data-vol="8">
       <div class="thumb">
         <img src="img/microjogos-vol8-behaviorismos.png" alt="Capa do Volume 8 — Behaviorismo(s)">
-        <div class="play-overlay">PLAY</div>
+        <div class="em-breve-badge"><span>EM BREVE</span></div>
       </div>
-      <div class="meta"><span class="vol">VOL.08</span><span class="status">▣ JOGÁVEL</span></div>
+      <div class="meta"><span class="vol">VOL.08</span><span class="status">▣ EM BREVE</span></div>
       <p class="title">Behaviorismo(s)</p>
       <p class="concept">› história do behaviorismo</p>
-    </a>
+    </div>
 
-    <a href="jogos/pliny/" class="game-card" data-vol="9">
+    <!-- VOL.09 — EM BREVE -->
+    <div class="game-card em-breve" data-vol="9">
       <div class="thumb">
         <img src="img/microjogos-vol9-pliny.png" alt="Capa do Volume 9 — Pliny">
-        <div class="play-overlay">PLAY</div>
+        <div class="em-breve-badge"><span>EM BREVE</span></div>
       </div>
-      <div class="meta"><span class="vol">VOL.09</span><span class="status">▣ JOGÁVEL</span></div>
+      <div class="meta"><span class="vol">VOL.09</span><span class="status">▣ EM BREVE</span></div>
       <p class="title">Pliny</p>
       <p class="concept">› modelagem e taxa de resposta</p>
-    </a>
+    </div>
 
-    <a href="jogos/molduras/" class="game-card" data-vol="10">
+    <!-- VOL.10 — EM BREVE -->
+    <div class="game-card em-breve" data-vol="10">
       <div class="thumb">
         <img src="img/microjogos-vol10-molduras.png" alt="Capa do Volume 10 — Molduras">
-        <div class="play-overlay">PLAY</div>
+        <div class="em-breve-badge"><span>EM BREVE</span></div>
       </div>
-      <div class="meta"><span class="vol">VOL.10</span><span class="status">▣ JOGÁVEL</span></div>
+      <div class="meta"><span class="vol">VOL.10</span><span class="status">▣ EM BREVE</span></div>
       <p class="title">Molduras</p>
       <p class="concept">› relações relacionais · RFT</p>
-    </a>
+    </div>
 
+    <!-- PRÓXIMOS VOLUMES -->
     <div class="game-card coming-soon" aria-label="Próximo volume em breve">
       <div class="thumb">
         <div class="coming-soon-content">
@@ -783,12 +845,10 @@
     <div class="credits-card">
       <p class="label">UMA PRODUÇÃO DO</p>
       <a href="https://criacom.github.io/lab/" target="_blank" rel="noopener" style="display:flex; flex-direction:column; align-items:center; gap:14px; text-decoration:none;">
-        <div class="logo-crt">
-          <span class="crt-corner tl"></span>
-          <span class="crt-corner br"></span>
+        <div class="logo-footer">
           <img src="img/logo.png" alt="Logotipo CRIACOM — Grupo de Pesquisa em Criatividade, Inovação, Cognição e Comportamento">
         </div>
-        <span style="font-family:'Press Start 2P',monospace; font-size:14px; color:var(--cyan); letter-spacing:3px; text-shadow:0 0 8px var(--cyan),0 0 18px rgba(0,229,255,0.5); transition:color .2s,text-shadow .2s;">◆ CRIACOM ◆</span>
+        <span style="font-family:'Press Start 2P',monospace; font-size:14px; color:var(--cyan); letter-spacing:3px; text-shadow:0 0 8px var(--cyan),0 0 18px rgba(0,229,255,0.5);">◆ CRIACOM ◆</span>
       </a>
       <p class="institution">Criatividade · Inovação · Cognição · Comportamento</p>
       <p class="institution sub">Universidade Estadual de Londrina</p>
