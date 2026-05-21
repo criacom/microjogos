@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Micro-jogos CRIACOM — Jogue pra Saber!</title>
+  <meta name="description" content="Coleção de micro-jogos didáticos de Análise do Comportamento. Behavioral Game Design pelo laboratório CRIACOM — UEL.">
+
+  <!-- ==========================================================
+       HOTSITE — Micro-jogos CRIACOM
+       Estética: arcade vetorial da era Atari (1971-1980)
+       Estrutura: index.html  +  /img/ (capas em PNG)
+       Para conectar os jogos: edite os href="jogos/..." abaixo
+       ========================================================== -->
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-deep:      #000000;
+      --bg-soft:      #050a06;
+      --phosphor:     #00ff66;
+      --phosphor-dim: #00b347;
+      --amber:        #ffb000;
+      --amber-dim:    #b87c00;
+      --pink:         #ff2a8e;
+      --cyan:         #00e5ff;
+      --red:          #ff2d3a;
+      --paper:        #f0e6c8;
+      --line:         rgba(0, 255, 102, 0.18);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg-deep);
+      color: var(--phosphor);
+      font-family: 'VT323', 'Courier New', monospace;
+      font-size: 22px;
+      line-height: 1.4;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+      background-image:
+        radial-gradient(ellipse at top, rgba(0, 60, 30, 0.18) 0%, transparent 55%),
+        radial-gradient(ellipse at bottom, rgba(40, 0, 30, 0.12) 0%, transparent 55%);
+    }
+
+    /* ===== CRT scanlines overlay ===== */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0,0,0,0) 0px,
+        rgba(0,0,0,0) 2px,
+        rgba(0,0,0,0.22) 3px,
+        rgba(0,0,0,0.22) 3px
+      );
+      pointer-events: none;
+      z-index: 1000;
+      mix-blend-mode: multiply;
+    }
+    /* ===== CRT vignette ===== */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background: radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,0.85) 100%);
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    @keyframes flicker {
+      0%, 100% { opacity: 1; }
+      98%      { opacity: 1; }
+      98.5%    { opacity: 0.94; }
+      99%      { opacity: 1; }
+    }
+    @keyframes bootIn {
+      0%   { opacity: 0; transform: scaleY(0.02); filter: blur(2px); }
+      30%  { opacity: 0.6; transform: scaleY(1.02); filter: blur(0); }
+      100% { opacity: 1; transform: scaleY(1); }
+    }
+    @keyframes blink {
+      to { visibility: hidden; }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: 0.55; transform: scale(0.94); }
+    }
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    main {
+      animation: bootIn 0.9s ease-out, flicker 9s infinite 1s;
+      position: relative;
+      z-index: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ===== STATUS BAR ===== */
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      color: var(--amber);
+      letter-spacing: 1px;
+      border-bottom: 1px solid var(--line);
+      text-shadow: 0 0 4px rgba(255, 176, 0, 0.6);
+    }
+    .status-bar .blink { animation: blink 1.2s steps(2, start) infinite; }
+    .status-bar .hi { color: var(--phosphor); text-shadow: 0 0 4px var(--phosphor); }
+
+    /* ===== MARQUEE ===== */
+    .marquee {
+      overflow: hidden;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 10px 0;
+      margin-bottom: 56px;
+      background: rgba(255, 42, 142, 0.04);
+    }
+    .marquee-inner {
+      display: flex;
+      white-space: nowrap;
+      animation: marquee 42s linear infinite;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 12px;
+      color: var(--pink);
+    }
+    .marquee-inner span {
+      padding: 0 32px;
+      text-shadow: 0 0 6px var(--pink), 0 0 14px rgba(255, 42, 142, 0.5);
+    }
+
+    /* ===== HERO ===== */
+    .hero {
+      text-align: center;
+      padding: 24px 0 80px;
+      position: relative;
+    }
+    .hero .micro {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(14px, 2.4vw, 22px);
+      color: var(--paper);
+      letter-spacing: 6px;
+      margin-bottom: 18px;
+      text-shadow: 0 0 4px rgba(240, 230, 200, 0.5);
+    }
+    .hero h1 {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(48px, 13vw, 132px);
+      color: var(--amber);
+      text-shadow:
+        0 0 8px var(--amber),
+        0 0 24px rgba(255, 176, 0, 0.55),
+        4px 4px 0 var(--red),
+        8px 8px 0 rgba(255, 45, 58, 0.45);
+      letter-spacing: 4px;
+      line-height: 1;
+      margin-bottom: 28px;
+    }
+    .hero .subtitle {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(14px, 2.6vw, 22px);
+      color: var(--phosphor);
+      letter-spacing: 8px;
+      text-shadow: 0 0 8px var(--phosphor), 0 0 22px rgba(0,255,102,0.5);
+      margin-bottom: 40px;
+    }
+    .hero .tagline {
+      font-size: 28px;
+      color: var(--paper);
+      margin-bottom: 6px;
+      letter-spacing: 1.5px;
+    }
+    .hero .tagline em {
+      color: var(--cyan);
+      font-style: normal;
+      text-shadow: 0 0 6px var(--cyan);
+    }
+    .hero .press-start {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 12px;
+      color: var(--phosphor);
+      letter-spacing: 4px;
+      margin-top: 52px;
+      text-shadow: 0 0 8px var(--phosphor);
+      animation: blink 1s steps(2, start) infinite;
+    }
+
+    /* ===== SECTION HEADERS ===== */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 72px 0 28px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(11px, 1.6vw, 14px);
+      color: var(--phosphor);
+      letter-spacing: 3px;
+      text-shadow: 0 0 6px var(--phosphor);
+    }
+    .section-header::before {
+      content: '►';
+      color: var(--amber);
+      text-shadow: 0 0 6px var(--amber);
+    }
+    .section-header::after {
+      content: '';
+      flex: 1;
+      height: 2px;
+      background: linear-gradient(to right, var(--phosphor-dim), transparent);
+    }
+
+    /* ===== ABOUT ===== */
+    .about {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 48px;
+      align-items: center;
+      padding: 12px 0 16px;
+    }
+    .about-text {
+      background: linear-gradient(rgba(0, 18, 8, 0.65), rgba(0, 18, 8, 0.65));
+      border: 2px solid var(--phosphor-dim);
+      padding: 32px;
+      position: relative;
+      box-shadow:
+        inset 0 0 40px rgba(0, 255, 102, 0.04),
+        0 0 28px rgba(0, 255, 102, 0.08);
+    }
+    /* corner brackets */
+    .about-text::before,
+    .about-text::after {
+      content: '';
+      position: absolute;
+      width: 18px; height: 18px;
+      border: 2px solid var(--amber);
+    }
+    .about-text::before { top: -2px; left: -2px; border-right: 0; border-bottom: 0; }
+    .about-text::after  { bottom: -2px; right: -2px; border-left: 0; border-top: 0; }
+
+    .about-text p { margin-bottom: 18px; color: var(--paper); }
+    .about-text p:last-child { margin-bottom: 0; }
+    .about-text strong {
+      color: var(--cyan);
+      font-weight: normal;
+      text-shadow: 0 0 6px var(--cyan);
+    }
+    .about-text .term {
+      color: var(--amber);
+      border-bottom: 1px dotted var(--amber);
+      text-shadow: 0 0 4px var(--amber);
+    }
+    .about-text .cta {
+      color: var(--phosphor);
+      margin-top: 22px;
+      font-size: 23px;
+      line-height: 1.5;
+      text-shadow: 0 0 5px var(--phosphor);
+    }
+
+    .about-image { text-align: center; position: relative; }
+    .about-image img {
+      max-width: 100%;
+      height: auto;
+      filter: drop-shadow(0 0 14px rgba(0, 255, 102, 0.35));
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+    .about-image .caption {
+      margin-top: 12px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      color: var(--phosphor-dim);
+      letter-spacing: 2px;
+    }
+
+    /* ===== GAMES GRID ===== */
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 22px;
+      padding: 16px 0;
+    }
+
+    .game-card {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      position: relative;
+      background: #000;
+      border: 2px solid var(--phosphor-dim);
+      padding: 12px;
+      transition: transform 0.22s ease-out, box-shadow 0.22s ease-out, border-color 0.22s;
+      cursor: pointer;
+    }
+    .game-card:hover,
+    .game-card:focus-visible {
+      transform: translate(-3px, -3px);
+      border-color: var(--amber);
+      box-shadow:
+        5px 5px 0 var(--amber),
+        0 0 36px rgba(255, 176, 0, 0.28);
+      outline: none;
+    }
+
+    .game-card .thumb {
+      position: relative;
+      overflow: hidden;
+      background: #000;
+      aspect-ratio: 3 / 4;
+      border: 1px solid var(--phosphor-dim);
+    }
+    .game-card .thumb img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.4s ease;
+    }
+    .game-card:hover .thumb img { transform: scale(1.05); }
+
+    .game-card .play-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.72);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 18px;
+      color: var(--phosphor);
+      letter-spacing: 4px;
+      text-shadow: 0 0 8px var(--phosphor), 0 0 18px rgba(0,255,102,0.6);
+    }
+    .game-card:hover .play-overlay,
+    .game-card:focus-visible .play-overlay { opacity: 1; }
+    .game-card .play-overlay::before {
+      content: '▶ ';
+      margin-right: 8px;
+      animation: blink 0.8s steps(2, start) infinite;
+    }
+
+    .game-card .meta {
+      padding-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-family: 'Press Start 2P', monospace;
+    }
+    .game-card .vol {
+      font-size: 10px;
+      color: var(--amber);
+      letter-spacing: 1px;
+      text-shadow: 0 0 4px var(--amber);
+    }
+    .game-card .status {
+      font-size: 8px;
+      color: var(--phosphor-dim);
+      letter-spacing: 1px;
+    }
+    .game-card .title {
+      margin-top: 8px;
+      font-family: 'VT323', monospace;
+      font-size: 23px;
+      color: var(--paper);
+      line-height: 1.1;
+      min-height: 2.4em;
+    }
+    .game-card .concept {
+      margin-top: 4px;
+      font-size: 17px;
+      color: var(--cyan);
+      text-shadow: 0 0 4px var(--cyan);
+    }
+
+    /* ===== COMING SOON ===== */
+    .game-card.coming-soon {
+      border-style: dashed;
+      border-color: var(--pink);
+      cursor: default;
+    }
+    .game-card.coming-soon:hover {
+      transform: translate(-3px, -3px);
+      border-color: var(--pink);
+      box-shadow: 5px 5px 0 var(--pink), 0 0 36px rgba(255, 42, 142, 0.28);
+    }
+    .game-card.coming-soon .thumb {
+      border: 1px dashed var(--pink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: repeating-linear-gradient(
+        45deg,
+        rgba(255, 42, 142, 0.05),
+        rgba(255, 42, 142, 0.05) 12px,
+        rgba(255, 42, 142, 0.1) 12px,
+        rgba(255, 42, 142, 0.1) 24px
+      );
+    }
+    .coming-soon-content {
+      text-align: center;
+      font-family: 'Press Start 2P', monospace;
+      color: var(--pink);
+      text-shadow: 0 0 8px var(--pink), 0 0 18px rgba(255, 42, 142, 0.5);
+      letter-spacing: 2px;
+      line-height: 2.2;
+    }
+    .coming-soon-content .big {
+      font-size: 24px;
+      display: block;
+      animation: pulse 1.6s ease-in-out infinite;
+    }
+    .coming-soon-content .small {
+      font-size: 11px;
+      display: block;
+      opacity: 0.85;
+    }
+    .coming-soon-content .bars {
+      display: block;
+      font-size: 14px;
+      margin-top: 10px;
+      letter-spacing: 4px;
+    }
+
+    /* ===== FOOTER ===== */
+    footer {
+      margin-top: 96px;
+      padding: 48px 0;
+      border-top: 1px solid var(--line);
+      text-align: center;
+    }
+    .credits {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      color: var(--amber);
+      letter-spacing: 3px;
+      margin-bottom: 28px;
+      text-shadow: 0 0 6px var(--amber);
+    }
+    .credits-card {
+      display: inline-block;
+      border: 2px solid var(--phosphor);
+      padding: 28px 44px;
+      background: rgba(0, 30, 15, 0.4);
+      box-shadow: 0 0 28px rgba(0, 255, 102, 0.18);
+      position: relative;
+    }
+    .credits-card::before,
+    .credits-card::after {
+      content: '';
+      position: absolute;
+      width: 14px; height: 14px;
+      border: 2px solid var(--amber);
+    }
+    .credits-card::before { top: -2px; left: -2px; border-right: 0; border-bottom: 0; }
+    .credits-card::after  { bottom: -2px; right: -2px; border-left: 0; border-top: 0; }
+
+    .credits-card .label {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      color: var(--phosphor-dim);
+      letter-spacing: 2px;
+      margin-bottom: 14px;
+    }
+    .credits-card a {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 16px;
+      color: var(--cyan);
+      text-decoration: none;
+      letter-spacing: 3px;
+      text-shadow: 0 0 8px var(--cyan), 0 0 18px rgba(0, 229, 255, 0.5);
+      transition: transform 0.2s, color 0.2s, text-shadow 0.2s;
+      display: inline-block;
+    }
+    .credits-card a:hover {
+      color: var(--amber);
+      text-shadow: 0 0 10px var(--amber), 0 0 22px rgba(255, 176, 0, 0.6);
+      transform: translate(-1px, -1px);
+    }
+    .credits-card .institution {
+      margin-top: 14px;
+      font-size: 19px;
+      color: var(--paper);
+      letter-spacing: 1px;
+    }
+    .credits-card .institution.sub {
+      font-size: 15px;
+      margin-top: 4px;
+      color: var(--phosphor-dim);
+      letter-spacing: 1.5px;
+    }
+    .footer-bottom {
+      margin-top: 48px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      color: var(--phosphor-dim);
+      letter-spacing: 2px;
+    }
+    .footer-bottom .heart {
+      color: var(--red);
+      animation: pulse 1.5s infinite;
+      display: inline-block;
+      text-shadow: 0 0 6px var(--red);
+    }
+
+    /* ===== CRT LOGO ===== */
+    .logo-crt {
+      position: relative;
+      display: inline-block;
+      padding: 20px 28px;
+      background: rgba(0, 8, 4, 0.9);
+      border: 2px solid var(--phosphor-dim);
+      box-shadow:
+        0 0 28px rgba(0, 255, 102, 0.22),
+        inset 0 0 30px rgba(0, 255, 102, 0.05);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    /* scanlines over the logo */
+    .logo-crt::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0,0,0,0) 0px,
+        rgba(0,0,0,0) 2px,
+        rgba(0,0,0,0.32) 3px,
+        rgba(0,0,0,0.32) 3px
+      );
+      pointer-events: none;
+      z-index: 2;
+    }
+    /* CRT vignette over logo */
+    .logo-crt::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,0.55) 100%);
+      pointer-events: none;
+      z-index: 3;
+    }
+    .logo-crt img {
+      display: block;
+      max-width: 180px;
+      height: auto;
+      mix-blend-mode: multiply;
+      filter: brightness(1.1) saturate(1.3) contrast(1.05);
+      position: relative;
+      z-index: 1;
+      animation: flicker 9s infinite 2s;
+    }
+    .logo-crt .crt-corner {
+      position: absolute;
+      width: 14px; height: 14px;
+      border: 2px solid var(--amber);
+      z-index: 4;
+    }
+    .logo-crt .crt-corner.tl { top: -2px; left: -2px; border-right: 0; border-bottom: 0; }
+    .logo-crt .crt-corner.br { bottom: -2px; right: -2px; border-left: 0; border-top: 0; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 820px) {
+      body { font-size: 19px; }
+      main { padding: 0 16px; }
+      .about { grid-template-columns: 1fr; gap: 32px; }
+      .about-image { order: -1; max-width: 340px; margin: 0 auto; }
+      .hero { padding: 16px 0 56px; }
+      .hero h1 { letter-spacing: 2px; }
+      .marquee { margin-bottom: 36px; }
+      .status-bar { font-size: 8px; }
+      .marquee-inner { font-size: 10px; }
+      .games-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+      .game-card { padding: 8px; }
+      .game-card .title { font-size: 19px; }
+      .game-card .concept { font-size: 15px; }
+      .game-card .play-overlay { font-size: 14px; }
+      .credits-card { padding: 22px 26px; }
+      .credits-card a { font-size: 13px; letter-spacing: 2px; }
+    }
+    @media (max-width: 420px) {
+      .games-grid { grid-template-columns: 1fr; }
+      .about-text { padding: 22px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      main, .marquee-inner, .hero .press-start,
+      .coming-soon-content .big, .footer-bottom .heart,
+      .status-bar .blink {
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<main>
+
+  <!-- ============== TOP STATUS BAR ============== -->
+  <div class="status-bar">
+    <span>1UP <span class="hi">00007</span></span>
+    <span class="blink">▣ CRIACOM · UEL ▣</span>
+    <span>HI <span class="hi">999999</span></span>
+  </div>
+
+  <!-- ============== SCROLLING MARQUEE ============== -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-inner">
+      <span>★ INSERT COIN ★ JOGUE PRA SABER ★ BEHAVIORAL GAME DESIGN ★ ANÁLISE DO COMPORTAMENTO ★ INSERT COIN ★ JOGUE PRA SABER ★ BEHAVIORAL GAME DESIGN ★ ANÁLISE DO COMPORTAMENTO ★</span>
+      <span>★ INSERT COIN ★ JOGUE PRA SABER ★ BEHAVIORAL GAME DESIGN ★ ANÁLISE DO COMPORTAMENTO ★ INSERT COIN ★ JOGUE PRA SABER ★ BEHAVIORAL GAME DESIGN ★ ANÁLISE DO COMPORTAMENTO ★</span>
+    </div>
+  </div>
+
+  <!-- ============== HERO ============== -->
+  <section class="hero">
+    <p class="micro">MICRO-JOGOS</p>
+    <h1>CRIACOM</h1>
+    <p class="subtitle">JOGUE PRA SABER</p>
+    <p class="tagline">um arcade de <em>análise do comportamento</em></p>
+    <p class="tagline">→ um conceito, um jogo, uma jogada ←</p>
+    <p class="press-start">▶ PRESS START ◀</p>
+  </section>
+
+  <!-- ============== ABOUT ============== -->
+  <h3 class="section-header">SOBRE A COLEÇÃO</h3>
+  <section class="about">
+    <div class="about-text">
+      <p>Os <strong>Micro-jogos CRIACOM</strong> são pequenas experiências interativas — cinco minutos ou menos cada — que demonstram princípios da <strong>Análise do Comportamento</strong> sem precisar de aula nenhuma. Cada volume isola <em>um</em> conceito comportamental e o transforma em mecânica jogável.</p>
+      <p>Extinção, discriminação espacial, indução, insight, desconto temporal, esquemas de reforçamento... cada cartucho é uma microintuição sobre os processos que governam o que você faz — agora mesmo, lendo isto.</p>
+      <p>Essa interface entre game design e análise do comportamento é o que chamamos de <span class="term">Behavioral Game Design</span>: usar a linguagem dos jogos para tornar visíveis as variáveis que regem o comportamento.</p>
+      <p class="cta">
+        ▸ Clique em qualquer cartucho para jogar.<br>
+        ▸ A coleção cresce a cada novo volume — volte sempre.
+      </p>
+    </div>
+    <div class="about-image">
+      <img src="img/boatacon2.png" alt="Pesquisador do CRIACOM jogando em um console retrô, com um gato pensativo sobre a TV imaginando uma contingência S+ · Sd · R">
+      <p class="caption">▣ ORIENTADOR EM CAMPO · S⁺ · S<sup>d</sup> · R ▣</p>
+    </div>
+  </section>
+
+  <!-- ============== GAMES GRID ============== -->
+  <h3 class="section-header">SELECIONE SEU CARTUCHO</h3>
+  <section class="games-grid">
+
+    <!-- Para conectar cada jogo, ajuste o href para o URL do micro-jogo. -->
+
+    <a href="jogos/extincao/" class="game-card" data-vol="1">
+      <div class="thumb">
+        <img src="img/microjogos-vol1-extincao.png" alt="Capa do Volume 1 — O Botão da Extinção">
+        <div class="play-overlay">PLAY</div>
+      </div>
+      <div class="meta"><span class="vol">VOL.01</span><span class="status">▣ JOGÁVEL</span></div>
+      <p class="title">O Botão da Extinção</p>
+      <p class="concept">› extinção operante</p>
+    </a>
+
+    <a href="jogos/discriminacao/" class="game-card" data-vol="2">
+      <div class="thumb">
+        <img src="img/microjogos-vol2-discriminacao.png" alt="Capa do Volume 2 — Discriminação Espacial">
+        <div class="play-overlay">PLAY</div>
+      </div>
+      <div class="meta"><span class="vol">VOL.02</span><span class="status">▣ JOGÁVEL</span></div>
+      <p class="title">Discriminação Espacial</p>
+      <p class="concept">› controle de estímulos</p>
+    </a>
+
+    <a href="jogos/inducao/" class="game-card" data-vol="3">
+      <div class="thumb">
+        <img src="img/microjogos-vol3-inducao.png" alt="Capa do Volume 3 — Indução">
+        <div class="play-overlay">PLAY</div>
+      </div>
+      <div class="meta"><span class="vol">VOL.03</span><span class="status">▣ JOGÁVEL</span></div>
+      <p class="title">Indução</p>
+      <p class="concept">› generalização de respostas</p>
+    </a>
+
+    <a href="jogos/insight/" class="game-card" data-vol="4">
+      <div class="thumb">
+        <img src="img/microjogos-vol4-insight.png" alt="Capa do Volume 4 — Insight">
+        <div class="play-overlay">PLAY</div>
+      </div>
+      <div class="meta"><span class="vol">VOL.04</span><span class="status">▣ JOGÁVEL</span></div>
+      <p class="title">Insight</p>
+      <p class="concept">› resolução de problemas</p>
+    </a>
+
+    <a href="jogos/insight2/" class="game-card" data-vol="5">
+      <div class="thumb">
+        <img src="img/microjogos-vol5-insight2.png" alt="Capa do Volume 5 — Insight 2">
+        <div class="play-overlay">PLAY</div>
+      </div>
+      <div class="meta"><span class="vol">VOL.05</span><span class="status">▣ JOGÁVEL</span></div>
+      <p class="title">Insight 2</p>
+      <p class="concept">› a segunda olhada</p>
+    </a>
+
+    <a href="jogos/desconto/" class="game-card" data-vol="6">
+      <div class="thumb">
+        <img src="img/microjogos-vol6-desconto.png" alt="Capa do Volume 6 — Desconto Temporal">
+        <div class="play-overlay">PLAY</div>
+      </div>
+      <div class="meta"><span class="vol">VOL.06</span><span class="status">▣ JOGÁVEL</span></div>
+      <p class="title">Desconto Temporal</p>
+      <p class="concept">› impulsividade e autocontrole</p>
+    </a>
+
+    <a href="jogos/esquemas/" class="game-card" data-vol="7">
+      <div class="thumb">
+        <img src="img/microjogos-vol7-esquemas.png" alt="Capa do Volume 7 — Jogo dos Esquemas">
+        <div class="play-overlay">PLAY</div>
+      </div>
+      <div class="meta"><span class="vol">VOL.07</span><span class="status">▣ JOGÁVEL</span></div>
+      <p class="title">Jogo dos Esquemas</p>
+      <p class="concept">› FR · VR · FI · VI</p>
+    </a>
+
+    <a href="jogos/behaviorismos/" class="game-card" data-vol="8">
+      <div class="thumb">
+        <img src="img/microjogos-vol8-behaviorismos.png" alt="Capa do Volume 8 — Behaviorismo(s)">
+        <div class="play-overlay">PLAY</div>
+      </div>
+      <div class="meta"><span class="vol">VOL.08</span><span class="status">▣ JOGÁVEL</span></div>
+      <p class="title">Behaviorismo(s)</p>
+      <p class="concept">› história do behaviorismo</p>
+    </a>
+
+    <a href="jogos/pliny/" class="game-card" data-vol="9">
+      <div class="thumb">
+        <img src="img/microjogos-vol9-pliny.png" alt="Capa do Volume 9 — Pliny">
+        <div class="play-overlay">PLAY</div>
+      </div>
+      <div class="meta"><span class="vol">VOL.09</span><span class="status">▣ JOGÁVEL</span></div>
+      <p class="title">Pliny</p>
+      <p class="concept">› modelagem e taxa de resposta</p>
+    </a>
+
+    <a href="jogos/molduras/" class="game-card" data-vol="10">
+      <div class="thumb">
+        <img src="img/microjogos-vol10-molduras.png" alt="Capa do Volume 10 — Molduras">
+        <div class="play-overlay">PLAY</div>
+      </div>
+      <div class="meta"><span class="vol">VOL.10</span><span class="status">▣ JOGÁVEL</span></div>
+      <p class="title">Molduras</p>
+      <p class="concept">› relações relacionais · RFT</p>
+    </a>
+
+    <div class="game-card coming-soon" aria-label="Próximo volume em breve">
+      <div class="thumb">
+        <div class="coming-soon-content">
+          <span class="big">VOL.??</span>
+          <span class="small">EM</span>
+          <span class="small">BREVE</span>
+          <span class="bars">▌▌▌▌▌</span>
+        </div>
+      </div>
+      <div class="meta">
+        <span class="vol" style="color: var(--pink); text-shadow: 0 0 4px var(--pink);">VOL.???</span>
+        <span class="status" style="color: var(--pink);">▣ LOADING</span>
+      </div>
+      <p class="title">A coleção cresce.</p>
+      <p class="concept" style="color: var(--pink); text-shadow: 0 0 4px var(--pink);">› volte sempre</p>
+    </div>
+
+  </section>
+
+  <!-- ============== FOOTER / CREDITS ============== -->
+  <footer>
+    <p class="credits">▌ ▌ ▌ CREDITS ▐ ▐ ▐</p>
+    <div class="credits-card">
+      <p class="label">UMA PRODUÇÃO DO</p>
+      <a href="https://criacom.github.io/lab/" target="_blank" rel="noopener" style="display:flex; flex-direction:column; align-items:center; gap:14px; text-decoration:none;">
+        <div class="logo-crt">
+          <span class="crt-corner tl"></span>
+          <span class="crt-corner br"></span>
+          <img src="img/logo.png" alt="Logotipo CRIACOM — Grupo de Pesquisa em Criatividade, Inovação, Cognição e Comportamento">
+        </div>
+        <span style="font-family:'Press Start 2P',monospace; font-size:14px; color:var(--cyan); letter-spacing:3px; text-shadow:0 0 8px var(--cyan),0 0 18px rgba(0,229,255,0.5); transition:color .2s,text-shadow .2s;">◆ CRIACOM ◆</span>
+      </a>
+      <p class="institution">Criatividade · Inovação · Cognição · Comportamento</p>
+      <p class="institution sub">Universidade Estadual de Londrina</p>
+    </div>
+    <p class="footer-bottom">
+      ◇ JOGUE PRA SABER ◇ <span class="heart">♥</span> ◇ CRIADO EM 2026 ◇ <span class="heart">♥</span> ◇ INSERT COIN ◇
+    </p>
+  </footer>
+
+</main>
+
+</body>
+</html>
